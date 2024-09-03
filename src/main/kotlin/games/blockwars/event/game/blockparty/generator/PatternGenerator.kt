@@ -2,7 +2,7 @@ package games.blockwars.event.game.blockparty.generator
 
 import org.bukkit.Material
 
-fun interface Generator {
+fun interface PatternGenerator {
     companion object {
         val validBlocks: List<Material> = Material.entries.stream().filter {
                 return@filter it.name.contains(

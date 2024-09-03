@@ -1,16 +1,20 @@
 package games.blockwars.event.game.blockparty
 
 import games.blockwars.event.game.blockparty.command.GameCommand
-import games.blockwars.event.game.blockparty.generator.BigGenerator
-import games.blockwars.event.game.blockparty.generator.LineGenerator
-import org.bukkit.entity.Player
+import org.bukkit.*
+
+import org.bukkit.WorldCreator
+import org.bukkit.WorldType
+import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
 
-class BlockParty : JavaPlugin() {
+class BlockParty : JavaPlugin(), Listener {
+    private lateinit var world : World
+
     override fun onEnable() {
         // Plugin startup login
         val manager = LegacyPaperCommandManager(
@@ -25,7 +29,21 @@ class BlockParty : JavaPlugin() {
             manager.registerAsynchronousCompletions()
         }
 
-        GameCommand().init(manager)
+        val wc = WorldCreator("game_world")
+        wc.generator(VoidChunkGenerator())
+        wc.generateStructures(false)
+        wc.type(WorldType.FLAT)
+        world = wc.createWorld() ?: throw RuntimeException("Couldn't create World!")
+        world.difficulty = Difficulty.PEACEFUL
+        world.time = 0
+        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
+
+        val game = Game(this, Location(world, 0.0, 0.0, 0.0))
+
+        server.pluginManager.registerEvents(game, this)
+
+        GameCommand(game).init(manager)
     }
 
     override fun onDisable() {
