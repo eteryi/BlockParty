@@ -1,0 +1,4 @@
+name: BlockParty
+version: '1.0'
+main: games.blockwars.event.game.blockparty.BlockParty
+api-version: '1.20'
