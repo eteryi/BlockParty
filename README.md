@@ -1,0 +1,2 @@
+# BlockParty
+A Minecraft Minigame.
