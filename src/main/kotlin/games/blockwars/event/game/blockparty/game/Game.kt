@@ -149,7 +149,7 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
         }
 
         val pattern = validPatterns.random()()
-        level = Level(location, pattern, level.roundNumber)
+        level = Level(location, pattern, level.roundNumber + 1)
         level.generate()
         Bukkit.broadcast(Component.text("Round has started!", NamedTextColor.YELLOW))
 
