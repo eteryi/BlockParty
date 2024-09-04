@@ -3,6 +3,7 @@ package games.blockwars.event.game.blockparty.game
 import games.blockwars.event.game.blockparty.generator.*
 import games.blockwars.event.game.blockparty.runnable.BlockRunnable
 import games.blockwars.event.game.blockparty.runnable.RevealRunnable
+import games.blockwars.event.game.blockparty.toColor
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
@@ -15,6 +16,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntitySpawnEvent
 import org.bukkit.event.entity.FoodLevelChangeEvent
+import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -32,9 +34,10 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
 
     private val lobbyLevel = Level(location, PatternGenerator { _, _ ->
         return@PatternGenerator Material.RED_CONCRETE
-    })
+    }, 0)
 
-    private var level : Level = lobbyLevel
+    var level : Level = lobbyLevel
+        private set
     private val spawnLocation : Location = location.clone().add(GRID_SIZE / 2.0, 2.0, GRID_SIZE / 2.0)
 
     private val playersUUID : HashSet<UUID> = hashSetOf()
@@ -46,8 +49,7 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
     private var timerTask : BukkitTask? = null
     private var isActive : Boolean = false
     private var startTime : Long = 0L
-    var roundNumber : Int = 0
-        private set
+    private val playerSurvivalTime : HashMap<String, Long> = hashMapOf()
     private val validPatterns = listOf(
         { StripePatternGenerator() },
         { LinePatternGenerator() },
@@ -90,9 +92,20 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
         }
 
         this.isActive = false
-
         Bukkit.broadcast(Component.text("Game has ended!", NamedTextColor.RED))
-        Bukkit.getOnlinePlayers().forEach { spectate(it) }
+
+        Bukkit.getOnlinePlayers().forEach {
+            // TODO fix this too, eliminate calls for end()
+            eliminate(it)
+        }
+
+        playerSurvivalTime.forEach { (t, u) ->
+            val time = Duration.ofMillis(u).toSeconds()
+            val min = if ((time / 60) >= 10) "${time / 60}" else "0${time / 60}"
+            val sec = if ((time % 60) >= 10) "${time % 60}" else "0${time % 60}"
+            Bukkit.broadcast(Component.text("  - $t : $min:$sec"))
+        }
+
         this.timerTask?.cancel()
 
         tasks.forEach { it.cancel() }
@@ -102,6 +115,7 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
             override fun run() {
                 hud.default()
                 startTime = 0
+                playerSurvivalTime.clear()
                 level = lobbyLevel
                 println("Ended the game!")
                 lobbyLevel.generate()
@@ -116,8 +130,9 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
         players.forEach { it.inventory.setItem(4, ItemStack(block)) }
 
         Bukkit.broadcast(
-            Component.text("The block is: ")
-                .append(Component.translatable("block.minecraft." + block.name.lowercase()))
+            Component.text("The block is", NamedTextColor.GRAY)
+                .append(Component.text(": ", NamedTextColor.DARK_GRAY))
+                .append(Component.translatable("block.minecraft." + block.name.lowercase(), block.toColor()))
         )
     }
 
@@ -128,30 +143,29 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
             return
         }
 
-        roundNumber++
         tasks.clear()
         for (player in players) {
             player.inventory.clear()
         }
 
         val pattern = validPatterns.random()()
-        level = Level(location, pattern)
+        level = Level(location, pattern, level.roundNumber)
         level.generate()
         Bukkit.broadcast(Component.text("Round has started!", NamedTextColor.YELLOW))
 
-        val reactionTimeSec : Double = (10.0) - (roundNumber.toDouble() / 2.0)
-        val reactionTime : Long = (reactionTimeSec * 20.0).toLong()
+        val reactionTime : Long = (level.reactionTime * 20.0).toLong()
+        val timeUntilReveal = 35L
 
         tasks.add(BlockRunnable {
             revealColor()
-        }.runTaskLater(plugin, 60L))
+        }.runTaskLater(plugin, timeUntilReveal))
 
-        tasks.add(RevealRunnable(level).runTaskLater(plugin, 60L + reactionTime))
+        tasks.add(RevealRunnable(level).runTaskLater(plugin, timeUntilReveal + reactionTime))
 
         // 2 seconds after reactionTime has ended, we start the next round
         tasks.add(BlockRunnable {
                 startRound()
-        }.runTaskLater(plugin, 60L + reactionTime + 40L))
+        }.runTaskLater(plugin, timeUntilReveal + reactionTime + 40L))
     }
 
     private fun addPlayer(p : Player) {
@@ -181,6 +195,7 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
             Component.text(p.name, NamedTextColor.WHITE)
                 .append(Component.text(" has been eliminated", NamedTextColor.RED))
         )
+        playerSurvivalTime[p.name] = System.currentTimeMillis() - startTime
 
         if (this.players.isEmpty()) {
             end()
@@ -241,5 +256,10 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
     @EventHandler
     private fun onEntitySpawn(e : EntitySpawnEvent) {
         if (e !is Player) e.isCancelled = true
+    }
+
+    @EventHandler
+    private fun onDropItem(e : PlayerDropItemEvent) {
+        if (e.player.gameMode != GameMode.CREATIVE) e.isCancelled = true
     }
 }

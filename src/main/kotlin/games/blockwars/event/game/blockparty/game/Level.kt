@@ -3,11 +3,15 @@ package games.blockwars.event.game.blockparty.game
 import games.blockwars.event.game.blockparty.generator.PatternGenerator
 import org.bukkit.Location
 import org.bukkit.Material
+import kotlin.math.max
 import kotlin.random.Random
 
-class Level(private val loc : Location, private val g : PatternGenerator) {
+class Level(private val loc : Location, private val g : PatternGenerator, val roundNumber : Int) {
     var chosenBlock : Material = Material.AIR
         private set
+
+    val reactionTime : Double
+        get() = max((10.0) - (roundNumber.toDouble() / 1.75), 0.75)
 
     fun generate() {
         var i = 0

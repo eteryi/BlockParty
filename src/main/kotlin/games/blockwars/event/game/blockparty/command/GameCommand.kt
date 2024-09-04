@@ -11,6 +11,7 @@ object GameCommand {
             m.commandBuilder("game", "blockparty")
                 .literal("start")
                 .handler {
+                    if (!it.sender().isOp) return@handler
                     it.sender().sendMessage("BLOCK WARS".small())
                     game.start()
                 }
@@ -19,6 +20,7 @@ object GameCommand {
             m.commandBuilder("game", "blockparty")
                 .literal("stop")
                 .handler {
+                    if (!it.sender().isOp) return@handler
                     it.sender().sendMessage("Stopping the game!")
                     game.end()
                 }
@@ -28,6 +30,7 @@ object GameCommand {
             m.commandBuilder("game", "blockparty")
                 .literal("players")
                 .handler { player ->
+                    if (!player.sender().isOp) return@handler
                     game.players.forEach {
                         player.sender().sendMessage(it.name)
                     }

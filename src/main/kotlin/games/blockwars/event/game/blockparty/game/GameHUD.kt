@@ -6,7 +6,7 @@ import org.bukkit.entity.Player
 
 class GameHUD(private val g : Game) {
     private val bossBar : BossBar = BossBar.bossBar(
-        Component.text("Default Bossbar!"),
+        Component.text("Femboy Championship!"),
         1.0f,
         BossBar.Color.WHITE,
         BossBar.Overlay.PROGRESS
@@ -21,15 +21,15 @@ class GameHUD(private val g : Game) {
         val minutes = if ((remainingSeconds / 60) >= 10) "${remainingSeconds / 60}" else "0${remainingSeconds / 60}"
         val seconds = if ((remainingSeconds % 60) >= 10) "${remainingSeconds % 60}" else "0${remainingSeconds % 60}"
 
-        val reactionTime : Double = (10.0) - (g.roundNumber.toDouble() / 2.0)
+        val reactionTime : Double = g.level.reactionTime
 
         bossBar.name(
-            Component.text("Round: ${g.roundNumber} $minutes:$seconds Reaction Time: $reactionTime")
+            Component.text("Round: ${g.level.roundNumber}       $minutes:$seconds        Reaction Time: ${String.format("%.2f", reactionTime)}")
         )
     }
 
     fun default() {
-        bossBar.name(Component.text("Default Bossbar!"))
+        bossBar.name(Component.text("Femboy Championship!"))
     }
 
 }
