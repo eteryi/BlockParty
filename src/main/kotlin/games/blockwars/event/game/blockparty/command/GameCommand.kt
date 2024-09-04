@@ -1,16 +1,17 @@
 package games.blockwars.event.game.blockparty.command
 
-import games.blockwars.event.game.blockparty.Game
+import games.blockwars.event.game.blockparty.game.Game
+import games.blockwars.event.game.blockparty.small
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.CommandManager
 
-class GameCommand(private val game : Game) {
-    fun init(m : CommandManager<CommandSender>) {
+object GameCommand {
+    fun init(game: Game, m : CommandManager<CommandSender>) {
         m.command(
             m.commandBuilder("game", "blockparty")
                 .literal("start")
                 .handler {
-                    it.sender().sendMessage("Starting the streeeam!")
+                    it.sender().sendMessage("BLOCK WARS".small())
                     game.start()
                 }
         )
@@ -27,7 +28,7 @@ class GameCommand(private val game : Game) {
             m.commandBuilder("game", "blockparty")
                 .literal("players")
                 .handler { player ->
-                    game.players().forEach {
+                    game.players.forEach {
                         player.sender().sendMessage(it.name)
                     }
                 }

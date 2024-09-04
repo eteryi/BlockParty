@@ -1,4 +1,4 @@
-package games.blockwars.event.game.blockparty
+package games.blockwars.event.game.blockparty.game
 
 import games.blockwars.event.game.blockparty.generator.PatternGenerator
 import org.bukkit.Location

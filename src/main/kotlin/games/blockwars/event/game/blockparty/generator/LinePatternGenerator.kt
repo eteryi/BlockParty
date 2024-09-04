@@ -1,6 +1,6 @@
 package games.blockwars.event.game.blockparty.generator
 
-import games.blockwars.event.game.blockparty.Game
+import games.blockwars.event.game.blockparty.game.Game
 import org.bukkit.Material
 
 class LinePatternGenerator : PatternGenerator{

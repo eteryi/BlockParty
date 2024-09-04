@@ -1,6 +1,7 @@
 package games.blockwars.event.game.blockparty
 
 import games.blockwars.event.game.blockparty.command.GameCommand
+import games.blockwars.event.game.blockparty.game.Game
 import org.bukkit.*
 
 import org.bukkit.WorldCreator
@@ -11,6 +12,7 @@ import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.paper.LegacyPaperCommandManager
+import java.time.Duration
 
 class BlockParty : JavaPlugin(), Listener {
     private lateinit var world : World
@@ -39,11 +41,11 @@ class BlockParty : JavaPlugin(), Listener {
         world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
         world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
 
-        val game = Game(this, Location(world, 0.0, 0.0, 0.0))
+        val game = Game(this, Location(world, 0.0, 0.0, 0.0), Duration.ofMinutes(3))
 
         server.pluginManager.registerEvents(game, this)
 
-        GameCommand(game).init(manager)
+        GameCommand.init(game, manager)
     }
 
     override fun onDisable() {
