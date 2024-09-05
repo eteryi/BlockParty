@@ -37,7 +37,7 @@ private val color = hashMapOf(
     Material.YELLOW_CONCRETE to NamedTextColor.YELLOW,
     Material.ORANGE_CONCRETE to NamedTextColor.GOLD,
     Material.RED_CONCRETE to NamedTextColor.RED,
-    Material.CYAN_CONCRETE to NamedTextColor.DARK_GRAY,
+    Material.CYAN_CONCRETE to NamedTextColor.DARK_AQUA,
     Material.LIGHT_BLUE_CONCRETE to NamedTextColor.AQUA,
     Material.BLUE_CONCRETE to NamedTextColor.BLUE,
     Material.GRAY_CONCRETE to NamedTextColor.DARK_GRAY,

@@ -32,6 +32,12 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
         const val GRID_SIZE = 25
     }
 
+    enum class State {
+        QUEUE,
+        ACTIVE,
+        ENDING
+    }
+
     private val lobbyLevel = Level(location, PatternGenerator { _, _ ->
         return@PatternGenerator Material.RED_CONCRETE
     }, 0)
@@ -47,9 +53,10 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
     private var tasks : ArrayList<BukkitTask> = arrayListOf()
     private val hud : GameHUD = GameHUD(this)
     private var timerTask : BukkitTask? = null
-    private var isActive : Boolean = false
+    private var gameState: State = State.QUEUE
     private var startTime : Long = 0L
     private val playerSurvivalTime : HashMap<String, Long> = hashMapOf()
+
     private val validPatterns = listOf(
         { StripePatternGenerator() },
         { LinePatternGenerator() },
@@ -62,11 +69,11 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
     }
 
     fun start() {
-        if (this.isActive) {
-            return // We don't want to start the game if it's already active
+        if (this.gameState != State.QUEUE) {
+            return // We don't want to start the game if it's not being queued
         }
 
-        this.isActive = true
+        this.gameState = State.ACTIVE
         this.startTime = System.currentTimeMillis()
 
         timerTask = BlockRunnable {
@@ -77,8 +84,9 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
             }
         }.runTaskTimer(plugin, 0L, 10L)
 
-        players.forEach { p ->
-            players.filter { it != p }.forEach {
+        Bukkit.getOnlinePlayers().forEach { p ->
+            playersUUID.add(p.uniqueId)
+            Bukkit.getOnlinePlayers().filter { it != p }.forEach {
                 p.hidePlayer(plugin, it)
             }
         }
@@ -87,23 +95,32 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
     }
 
     fun end() {
-        if (!this.isActive) {
+        if (this.gameState != State.ACTIVE) {
             return
         }
 
-        this.isActive = false
-        Bukkit.broadcast(Component.text("Game has ended!", NamedTextColor.RED))
+        this.gameState = State.ENDING
 
         Bukkit.getOnlinePlayers().forEach {
-            // TODO fix this too, eliminate calls for end()
             eliminate(it)
         }
 
-        playerSurvivalTime.forEach { (t, u) ->
-            val time = Duration.ofMillis(u).toSeconds()
-            val min = if ((time / 60) >= 10) "${time / 60}" else "0${time / 60}"
-            val sec = if ((time % 60) >= 10) "${time % 60}" else "0${time % 60}"
-            Bukkit.broadcast(Component.text("  - $t : $min:$sec"))
+        Bukkit.broadcast(Component.text("Game has ended!", NamedTextColor.RED))
+        playerSurvivalTime
+            .keys
+            .sortedBy { playerSurvivalTime[it] }
+            .reversed()
+            .forEach { p ->
+                val time = Duration.ofMillis(playerSurvivalTime[p]!!).toSeconds()
+                val min = if ((time / 60) >= 10) "${time / 60}" else "0${time / 60}"
+                val sec = if ((time % 60) >= 10) "${time % 60}" else "0${time % 60}"
+
+                Bukkit.broadcast(Component.text("  - ", NamedTextColor.YELLOW)
+                    .append(Component.text(p, NamedTextColor.WHITE))
+                    .append(Component.text(" $min", NamedTextColor.GRAY))
+                    .append(Component.text(":", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(sec, NamedTextColor.GRAY))
+                )
         }
 
         this.timerTask?.cancel()
@@ -117,6 +134,7 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
                 startTime = 0
                 playerSurvivalTime.clear()
                 level = lobbyLevel
+                gameState = State.QUEUE
                 println("Ended the game!")
                 lobbyLevel.generate()
                 playersUUID.clear()
@@ -169,7 +187,6 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
     }
 
     private fun addPlayer(p : Player) {
-        playersUUID.add(p.uniqueId)
         p.sendMessage(Component.text("You've been added to the Block Party!", NamedTextColor.GREEN))
         p.teleport(spawnLocation)
         p.gameMode = GameMode.ADVENTURE
@@ -186,9 +203,7 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
 
 
     private fun eliminate(p : Player) {
-        if (!this.isActive) return
-        println("elimination was called")
-        playersUUID.remove(p.uniqueId)
+        if (!playersUUID.remove(p.uniqueId)) return
         this.spectate(p)
 
         Bukkit.broadcast(
@@ -210,7 +225,7 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
                 .append(Component.text("] ${e.player.name}", NamedTextColor.GREEN))
         )
 
-        if (this.isActive) {
+        if (this.gameState != State.QUEUE) {
             spectate(e.player)
             return
         }
@@ -220,8 +235,11 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
 
     @EventHandler
     private fun onMove(e : PlayerMoveEvent) {
-        if (e.to.y <= -2 && players.contains(e.player)) {
-            eliminate(e.player)
+        if (e.to.y <= location.y - 5) {
+            if (this.gameState == State.ACTIVE) {
+                eliminate(e.player)
+                return
+            }
             e.player.teleport(spawnLocation)
         }
     }
@@ -235,10 +253,6 @@ class Game(private val plugin : JavaPlugin, private val location : Location, val
         )
 
         if (players.contains(e.player)) {
-            if (!this.isActive) {
-                playersUUID.remove(e.player.uniqueId)
-                return
-            }
             eliminate(e.player)
         }
     }

@@ -6,7 +6,7 @@ import org.bukkit.entity.Player
 
 class GameHUD(private val g : Game) {
     private val bossBar : BossBar = BossBar.bossBar(
-        Component.text("Femboy Championship!"),
+        Component.text("Block Party"),
         1.0f,
         BossBar.Color.WHITE,
         BossBar.Overlay.PROGRESS
@@ -29,7 +29,7 @@ class GameHUD(private val g : Game) {
     }
 
     fun default() {
-        bossBar.name(Component.text("Femboy Championship!"))
+        bossBar.name(Component.text("Block Party!"))
     }
 
 }

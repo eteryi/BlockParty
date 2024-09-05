@@ -11,7 +11,7 @@ class Level(private val loc : Location, private val g : PatternGenerator, val ro
         private set
 
     val reactionTime : Double
-        get() = max((10.0) - (roundNumber.toDouble() / 1.75), 0.75)
+        get() = max((10.0) - (roundNumber.toDouble() / 2.75), 0.75)
 
     fun generate() {
         var i = 0
