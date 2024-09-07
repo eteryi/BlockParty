@@ -5,24 +5,31 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.CommandManager
+import org.incendo.cloud.permission.PredicatePermission
 
 object GameCommand {
     fun init(game: BlockPartyGame, m : CommandManager<CommandSender>) {
         m.command(
             m.commandBuilder("game", "blockparty")
                 .literal("start")
-                .handler {
-                    if (!it.sender().isOp) return@handler
-                    it.sender().sendMessage(Component.text("Starting the Game...", NamedTextColor.GREEN))
+                .permission(PredicatePermission.of {
+                    it.isOp
+                })
+                .handler { ctx ->
+                    val sender = ctx.sender()
+                    sender.sendMessage(Component.text("Starting the Game...", NamedTextColor.GREEN))
                     game.start()
                 }
         )
         m.command(
             m.commandBuilder("game", "blockparty")
                 .literal("stop")
-                .handler {
-                    if (!it.sender().isOp) return@handler
-                    it.sender().sendMessage(Component.text("Stopping the game!", NamedTextColor.RED))
+                .permission(PredicatePermission.of {
+                    it.isOp
+                })
+                .handler { ctx ->
+                    val sender = ctx.sender()
+                    sender.sendMessage(Component.text("Stopping the game!", NamedTextColor.RED))
                     game.end()
                 }
         )
@@ -30,10 +37,14 @@ object GameCommand {
         m.command(
             m.commandBuilder("game", "blockparty")
                 .literal("players")
-                .handler { player ->
-                    if (!player.sender().isOp) return@handler
+                .permission(PredicatePermission.of {
+                    it.isOp
+                })
+                .handler { ctx ->
+                    val sender = ctx.sender()
+
                     game.players.forEach {
-                        player.sender().sendMessage(it.name)
+                        sender.sendMessage(it.name)
                     }
                 }
         )
