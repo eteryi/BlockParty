@@ -1,7 +1,7 @@
 package games.blockwars.event.game.blockparty
 
 import games.blockwars.event.game.blockparty.command.GameCommand
-import games.blockwars.event.game.blockparty.game.Game
+import games.blockwars.event.game.blockparty.game.BlockPartyGame
 import org.bukkit.*
 
 import org.bukkit.WorldCreator
@@ -41,7 +41,7 @@ class BlockParty : JavaPlugin(), Listener {
         world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
         world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
 
-        val game = Game(this, Location(world, 0.0, 0.0, 0.0), Duration.ofMinutes(3))
+        val game = BlockPartyGame(this, Location(world, 0.0, 0.0, 0.0), Duration.ofMinutes(3))
 
         server.pluginManager.registerEvents(game, this)
 

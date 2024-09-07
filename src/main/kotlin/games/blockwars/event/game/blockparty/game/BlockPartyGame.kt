@@ -27,7 +27,7 @@ import org.bukkit.scheduler.BukkitTask
 import java.time.Duration
 import java.util.*
 
-class Game(private val plugin : JavaPlugin, private val location : Location, val gameDuration: Duration) : Listener {
+class BlockPartyGame(private val plugin : JavaPlugin, private val location : Location, val gameDuration: Duration) : Listener {
     companion object {
         const val GRID_SIZE = 25
     }

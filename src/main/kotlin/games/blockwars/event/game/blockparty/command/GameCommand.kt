@@ -1,12 +1,12 @@
 package games.blockwars.event.game.blockparty.command
 
-import games.blockwars.event.game.blockparty.game.Game
+import games.blockwars.event.game.blockparty.game.BlockPartyGame
 import games.blockwars.event.game.blockparty.small
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.CommandManager
 
 object GameCommand {
-    fun init(game: Game, m : CommandManager<CommandSender>) {
+    fun init(game: BlockPartyGame, m : CommandManager<CommandSender>) {
         m.command(
             m.commandBuilder("game", "blockparty")
                 .literal("start")

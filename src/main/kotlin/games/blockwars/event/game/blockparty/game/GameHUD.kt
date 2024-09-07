@@ -4,7 +4,7 @@ import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 
-class GameHUD(private val g : Game) {
+class GameHUD(private val g : BlockPartyGame) {
     private val bossBar : BossBar = BossBar.bossBar(
         Component.text("Block Party"),
         1.0f,
