@@ -173,7 +173,8 @@ class BlockPartyGame(
             return
         }
 
-        // Clearing the last round's tasks that have already been... wait.
+        // Clearing the last round's tasks that have already have been run through (cancelling some of them IN CASE of a double call for start round, which shouldn't happen. but its better to be safe).
+        tasks.filter { !it.isCancelled }.forEach { it.cancel() }
         tasks.clear()
         for (player in players) {
             player.inventory.clear()
