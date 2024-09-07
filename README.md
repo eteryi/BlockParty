@@ -1,6 +1,9 @@
 <div align="center">
 
 # BlockParty
+![license](https://img.shields.io/github/license/eteryi/BlockParty) ![release](https://img.shields.io/github/v/release/eteryi/blockparty)
+
+
 A simple version of the popular minigame Block Party, also known as Pixel Party on Hypixel, a movement game made to test your reaction time, with randomly generated floor patterns! Made specifically for my interview process at Block Wars.
 
 </div>
