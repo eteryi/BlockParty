@@ -1,7 +1,8 @@
 package games.blockwars.event.game.blockparty.command
 
 import games.blockwars.event.game.blockparty.game.BlockPartyGame
-import games.blockwars.event.game.blockparty.small
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.command.CommandSender
 import org.incendo.cloud.CommandManager
 
@@ -12,7 +13,7 @@ object GameCommand {
                 .literal("start")
                 .handler {
                     if (!it.sender().isOp) return@handler
-                    it.sender().sendMessage("BLOCK WARS".small())
+                    it.sender().sendMessage(Component.text("Starting the Game...", NamedTextColor.GREEN))
                     game.start()
                 }
         )
@@ -21,7 +22,7 @@ object GameCommand {
                 .literal("stop")
                 .handler {
                     if (!it.sender().isOp) return@handler
-                    it.sender().sendMessage("Stopping the game!")
+                    it.sender().sendMessage(Component.text("Stopping the game!", NamedTextColor.RED))
                     game.end()
                 }
         )

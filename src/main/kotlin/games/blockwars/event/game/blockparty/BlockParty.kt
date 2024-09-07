@@ -1,6 +1,8 @@
 package games.blockwars.event.game.blockparty
 
 import games.blockwars.event.game.blockparty.command.GameCommand
+import games.blockwars.event.game.blockparty.config.Config
+import games.blockwars.event.game.blockparty.event.GameListener
 import games.blockwars.event.game.blockparty.game.BlockPartyGame
 import org.bukkit.*
 
@@ -31,19 +33,31 @@ class BlockParty : JavaPlugin(), Listener {
             manager.registerAsynchronousCompletions()
         }
 
-        val wc = WorldCreator("game_world")
-        wc.generator(VoidChunkGenerator())
-        wc.generateStructures(false)
-        wc.type(WorldType.FLAT)
-        world = wc.createWorld() ?: throw RuntimeException("Couldn't create World!")
-        world.difficulty = Difficulty.PEACEFUL
-        world.time = 0
-        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
-        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
+        val config = Config(this)
+        config.read()
 
-        val game = BlockPartyGame(this, Location(world, 0.0, 0.0, 0.0), Duration.ofMinutes(3))
+        var loc : Location? = config.location
+        if (loc == null) {
+            /*
+            If the location hasn't been provided,
+            it will default to creating an internal void world to be used
+            */
+            val wc = WorldCreator("blockparty_world")
+            wc.generator(VoidChunkGenerator())
+            wc.generateStructures(false)
+            wc.type(WorldType.FLAT)
+            world = wc.createWorld() ?: throw RuntimeException("Couldn't create Void World!")
+            world.difficulty = Difficulty.PEACEFUL
+            world.time = 0
+            world.setGameRule(GameRule.DO_WEATHER_CYCLE, false)
+            world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false)
 
-        server.pluginManager.registerEvents(game, this)
+            loc = Location(world, 0.0, 0.0, 0.0)
+        }
+
+        val game = BlockPartyGame(this, loc, Duration.ofSeconds(config.roundDuration.toLong()))
+
+        server.pluginManager.registerEvents(GameListener(game), this)
 
         GameCommand.init(game, manager)
     }
